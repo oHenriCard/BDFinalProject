@@ -25,20 +25,23 @@ public class Apriori {
     public Map<Set<String>, Double> generateFrequentItemSets(List<Set<String>> transactionList) {
         Map<Set<String>, Double>  allFrequentItemSets = new HashMap<>();
         Map<Set<String>, Integer> C1 = new HashMap<>();
-
+        // Contagem dos itens individuais (passo 1 do Apriori).
         for(Set<String> transaction : transactionList) {
             for(String item : transaction) {
                 Set<String> itemSet = new HashSet<>(Collections.singletonList(item));
                 C1.put(itemSet, C1.getOrDefault(itemSet,0) + 1);
             }
         }
-
+        //Filtra os itens frequentes.
         List<Set<String>> lk = filterBySupport(C1, transactionList.size());
         lk.forEach(itemSet -> allFrequentItemSets.put(itemSet, (double) C1.get(itemSet) / transactionList.size()));
-
+        // Gera itemsets de tamanho crescente
         for(int k = 2; !lk.isEmpty(); k++) {
-            List<Set<String>> ck = generateCandidates(lk, k);
-            Map<Set<String>, Integer> CkCount = countOccurrences(ck, transactionList);
+            //Gera os candidatos
+            List<Set<String>> ck = generateCandidates(lk, k); 
+            //Conta as ocorrências
+            Map<Set<String>, Integer> CkCount = countOccurrences(ck, transactionList); 
+            //Filtra por suporte
             lk = filterBySupport(CkCount, transactionList.size());
             lk.forEach(itemSet -> allFrequentItemSets.put(itemSet, (double) CkCount.get(itemSet) / transactionList.size()));
         }
@@ -50,14 +53,17 @@ public class Apriori {
         for (Map.Entry<Set<String>, Double> entry : frequentItemSets.entrySet()) {
             Set<String> itemSet = entry.getKey();
             if (itemSet.size() < 2) continue;
-            List<Set<String>> subconjuntos = generateSubsets(itemSet);
 
-            for (Set<String> antecedent : subconjuntos) {
+            //Gera todos os subconjuntos possíveis
+            List<Set<String>> subsets = generateSubsets(itemSet);
+
+            for (Set<String> antecedent : subsets) {
                 if (antecedent.isEmpty() || antecedent.equals(itemSet)) continue;
 
                 Double suporteAntecedente = frequentItemSets.get(antecedent);
                 if (suporteAntecedente == null) continue;
 
+                // Calcula a confiança: suporte(itemset) / suporte(antecedente
                 double confianca = entry.getValue() / suporteAntecedente;
 
                 if (confianca >= minConfianca) {
